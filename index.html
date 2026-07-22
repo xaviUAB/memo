@@ -158,10 +158,10 @@
                         <input type="text" id="audioTags" placeholder="Idees, Reunió, Urgent..." 
                             class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-sm bg-white">
                     </div>
-                    <!-- NOVA SECCIÓ: Etiquetes suggerides -->
+                    <!-- SECCIÓ: Etiquetes suggerides -->
                     <div id="suggestedTagsContainer" class="flex flex-wrap gap-2 mt-3 hidden"></div>
                     
-                    <!-- NOVA SECCIÓ: Notes / Transcripció -->
+                    <!-- SECCIÓ: Notes / Transcripció -->
                     <label class="block text-sm font-semibold text-slate-700 mt-4 mb-2 flex items-center gap-2">
                         <i data-lucide="file-text" class="w-4 h-4 text-indigo-500"></i> Notes o Transcripció
                     </label>
@@ -258,23 +258,43 @@
                 <div class="p-2 bg-indigo-50 rounded-lg"><i data-lucide="tags" class="w-5 h-5 text-indigo-600"></i></div>
                 Dades de l'Arxiu
             </h2>
-            <p class="text-sm text-slate-500 mb-6">Modifica les etiquetes o la nota d'aquest àudio.</p>
+            <p class="text-sm text-slate-500 mb-6">Modifica les etiquetes d'aquest àudio.</p>
             
             <input type="hidden" id="editTagsFileId">
             <input type="hidden" id="editTagsDuration">
             
             <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Etiquetes (separades per comes)</label>
             <input type="text" id="editTagsInput" placeholder="Idees, 2026, Important" 
-                class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-sm mb-4 bg-slate-50 focus:bg-white">
+                class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-sm mb-6 bg-slate-50 focus:bg-white">
                 
-            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Notes / Descripció</label>
-            <textarea id="editNotesInput" rows="3" placeholder="Afegeix una nota descriptiva..." 
-                class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-sm mb-6 bg-slate-50 focus:bg-white resize-y"></textarea>
-            
             <div class="flex justify-end gap-3">
                 <button onclick="closeModal('editTagsModal', 'editTagsCard')" class="px-5 py-2.5 text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">Cancel·lar</button>
                 <button onclick="saveEditedTags()" id="saveTagsBtn" class="px-5 py-2.5 text-sm font-semibold text-white bg-slate-900 hover:bg-indigo-600 rounded-xl transition-colors flex items-center gap-2 shadow-md">
                     <i data-lucide="check" class="w-4 h-4"></i> Guardar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal d'Edició de Transcripció -->
+    <div id="editNotesModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[150] hidden flex items-center justify-center p-4 opacity-0 transition-opacity">
+        <div class="bg-white max-w-lg w-full rounded-[2rem] shadow-2xl p-6 transform scale-95 transition-transform flex flex-col max-h-[90vh]" id="editNotesCard">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="p-2 bg-amber-50 rounded-lg"><i data-lucide="file-edit" class="w-5 h-5 text-amber-600"></i></div>
+                <h2 class="text-xl font-bold text-slate-800">Editar Transcripció</h2>
+            </div>
+            
+            <input type="hidden" id="editNotesFileId">
+            
+            <div class="flex-grow flex flex-col mb-4 overflow-hidden">
+                 <textarea id="editNotesInput" placeholder="Afegeix una nota descriptiva o corregeix la transcripció..." 
+                class="w-full h-48 sm:h-64 p-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all text-sm bg-slate-50 focus:bg-white resize-y"></textarea>
+            </div>
+           
+            <div class="flex justify-end gap-3 mt-auto">
+                <button onclick="closeModal('editNotesModal', 'editNotesCard')" class="px-5 py-2.5 text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">Cancel·lar</button>
+                <button onclick="saveEditedNotes()" id="saveNotesBtn" class="px-5 py-2.5 text-sm font-semibold text-white bg-amber-500 hover:bg-amber-600 rounded-xl transition-colors flex items-center gap-2 shadow-md">
+                    <i data-lucide="check" class="w-4 h-4"></i> Guardar Transcripció
                 </button>
             </div>
         </div>
@@ -513,6 +533,7 @@
 
             if (type === 'success') { borderColor = "border-green-500"; icon = "check-circle-2"; iconColor = "text-green-500"; }
             else if (type === 'error') { borderColor = "border-red-500"; icon = "alert-octagon"; iconColor = "text-red-500"; }
+            else if (type === 'warning') { borderColor = "border-amber-500"; icon = "alert-triangle"; iconColor = "text-amber-500"; }
 
             notif.className = `flex items-center gap-3 p-4 rounded-2xl pointer-events-auto transform transition-all translate-x-full duration-300 ${styles} ${borderColor}`;
             notif.innerHTML = `<i data-lucide="${icon}" class="w-6 h-6 ${iconColor}"></i><p class="text-sm font-semibold text-slate-700">${message}</p>`;
@@ -973,10 +994,14 @@
             listContainer.innerHTML = '';
             filtered.forEach(file => {
                 const item = document.createElement('div');
-                item.className = "group flex flex-col sm:flex-row sm:items-center justify-between p-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:border-indigo-100 transition-all gap-4";
+                item.className = "group flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:border-indigo-100 transition-all gap-4";
                 
                 const shortName = file.name;
+                // Cal codificar les dades per evitar errors d'injecció a l'HTML quan tenim cometes o salts de línia a les notes
                 const safeName = encodeURIComponent(file.name);
+                const safeNotes = encodeURIComponent(file.description || "");
+                const safeTags = encodeURIComponent(file.appProperties?.tags || "");
+                const rawDur = file.appProperties?.duration || "";
                 
                 const d = new Date(file.modifiedTime);
                 const dateStr = d.toLocaleDateString('ca-ES', {day:'2-digit', month:'short', year:'numeric'}) + " · " + d.toLocaleTimeString('ca-ES', {hour: '2-digit', minute:'2-digit'});
@@ -985,35 +1010,47 @@
                 
                 const tagsArray = file.appProperties?.tags ? file.appProperties.tags.split(',').map(t => t.trim()).filter(t => t) : [];
                 const tagsHtml = tagsArray.map(t => `<span class="px-2 py-0.5 bg-indigo-50/80 text-indigo-700 text-[10px] rounded-md uppercase font-bold tracking-wider">${t}</span>`).join('');
-                const encodedTags = encodeURIComponent(file.appProperties?.tags || "");
-                const rawDur = file.appProperties?.duration || "";
                 
                 const hasNotes = !!file.description;
-                const encodedNotes = encodeURIComponent(file.description || "");
-                const notesHtml = hasNotes ? `<p class="text-xs text-slate-500 mt-1 italic truncate max-w-[200px] sm:max-w-xs"><i data-lucide="file-text" class="w-3 h-3 inline mr-1"></i>${file.description}</p>` : '';
+                // Hem convertit la nota en un element clicable per obrir l'editor ràpid
+                const notesHtml = hasNotes 
+                    ? `<button onclick="openEditNotesModal('${file.id}', '${safeNotes}')" class="text-left w-full mt-2 p-2.5 bg-amber-50/50 hover:bg-amber-50 border border-amber-100/50 rounded-xl transition-colors group/note relative">
+                         <div class="flex items-start gap-2">
+                             <i data-lucide="file-edit" class="w-4 h-4 text-amber-500 mt-0.5 shrink-0 group-hover/note:scale-110 transition-transform"></i>
+                             <p class="text-xs text-slate-600 line-clamp-2 leading-relaxed">${file.description.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>
+                         </div>
+                       </button>` 
+                    : `<button onclick="openEditNotesModal('${file.id}', '')" class="text-left mt-2 flex items-center gap-1.5 text-[11px] font-semibold text-slate-400 hover:text-amber-500 transition-colors"><i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Afegir transcripció</button>`;
+                
                 const link = file.webViewLink || "";
 
                 item.innerHTML = `
-                    <div class="flex items-center gap-3.5 overflow-hidden flex-grow min-w-0">
-                        <div class="p-3 bg-gradient-to-br from-slate-100 to-slate-50 text-indigo-500 rounded-xl shrink-0 border border-slate-200 group-hover:from-indigo-50 group-hover:to-purple-50 group-hover:border-indigo-200 transition-colors">
+                    <div class="flex items-start gap-4 overflow-hidden flex-grow min-w-0">
+                        <div class="p-3 bg-gradient-to-br from-slate-100 to-slate-50 text-indigo-500 rounded-xl shrink-0 border border-slate-200 group-hover:from-indigo-50 group-hover:to-purple-50 group-hover:border-indigo-200 transition-colors shadow-sm">
                             <i data-lucide="audio-lines" class="w-5 h-5"></i>
                         </div>
-                        <div class="flex flex-col min-w-0">
+                        <div class="flex flex-col min-w-0 flex-grow">
                             <span class="text-sm font-bold text-slate-800 truncate" title="${file.name}">${shortName}</span>
                             <span class="text-xs text-slate-500 mt-0.5 font-medium">${dateStr} &bull; ${durStr}</span>
+                            <div class="flex flex-wrap gap-1 mt-2 empty:hidden">${tagsHtml}</div>
                             ${notesHtml}
-                            <div class="flex flex-wrap gap-1 mt-1.5 empty:hidden">${tagsHtml}</div>
                         </div>
                     </div>
-                    <div class="flex items-center gap-1 shrink-0 bg-slate-50 p-1.5 rounded-xl border border-slate-100 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                        <button onclick="playDriveFile('${file.id}', '${safeName}')" class="p-2 text-slate-500 hover:text-green-600 hover:bg-green-100 rounded-lg transition-colors" title="Reproduir"><i data-lucide="play" class="w-4 h-4"></i></button>
-                        <button onclick="downloadDriveFile('${file.id}', '${safeName}')" class="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-100 rounded-lg transition-colors" title="Descarregar"><i data-lucide="download" class="w-4 h-4"></i></button>
-                        <button onclick="copyToClipboard('${link}')" class="p-2 text-slate-500 hover:text-purple-600 hover:bg-purple-100 rounded-lg transition-colors" title="Copiar Enllaç"><i data-lucide="link" class="w-4 h-4"></i></button>
-                        <div class="w-px h-5 bg-slate-200 mx-1"></div>
-                        <button onclick="openRenameModal('${file.id}', '${safeName}')" class="p-2 text-slate-500 hover:text-teal-600 hover:bg-teal-100 rounded-lg transition-colors" title="Renombrar"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
-                        <button onclick="openEditTagsModal('${file.id}', '${encodedTags}', '${rawDur}', '${encodedNotes}')" class="p-2 text-slate-500 hover:text-indigo-600 hover:bg-indigo-100 rounded-lg transition-colors" title="Dades de l'Arxiu"><i data-lucide="tags" class="w-4 h-4"></i></button>
-                        <div class="w-px h-5 bg-slate-200 mx-1"></div>
-                        <button onclick="promptDeleteFile('${file.id}')" class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    <div class="flex flex-row sm:flex-col items-center gap-1.5 shrink-0 bg-slate-50 p-2 rounded-xl border border-slate-100 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                        <div class="flex gap-1">
+                            <button onclick="playDriveFile('${file.id}', '${safeName}')" class="p-1.5 text-slate-500 hover:text-green-600 hover:bg-green-100 rounded-lg transition-colors shadow-sm bg-white border border-slate-200 hover:border-green-200" title="Reproduir"><i data-lucide="play" class="w-4 h-4"></i></button>
+                            <button onclick="downloadDriveFile('${file.id}', '${safeName}')" class="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-100 rounded-lg transition-colors shadow-sm bg-white border border-slate-200 hover:border-blue-200" title="Descarregar"><i data-lucide="download" class="w-4 h-4"></i></button>
+                        </div>
+                        <div class="flex gap-1">
+                             <button onclick="copyToClipboard('${link}')" class="p-1.5 text-slate-500 hover:text-purple-600 hover:bg-purple-100 rounded-lg transition-colors shadow-sm bg-white border border-slate-200 hover:border-purple-200" title="Copiar Enllaç"><i data-lucide="link" class="w-4 h-4"></i></button>
+                             <button onclick="openRenameModal('${file.id}', '${safeName}')" class="p-1.5 text-slate-500 hover:text-teal-600 hover:bg-teal-100 rounded-lg transition-colors shadow-sm bg-white border border-slate-200 hover:border-teal-200" title="Renombrar"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
+                        </div>
+                        <div class="w-full h-px bg-slate-200 my-0.5 hidden sm:block"></div>
+                        <div class="w-px h-full bg-slate-200 mx-0.5 block sm:hidden"></div>
+                        <div class="flex gap-1">
+                             <button onclick="openEditTagsModal('${file.id}', '${safeTags}', '${rawDur}')" class="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-100 rounded-lg transition-colors shadow-sm bg-white border border-slate-200 hover:border-indigo-200" title="Editar Etiquetes"><i data-lucide="tags" class="w-4 h-4"></i></button>
+                             <button onclick="promptDeleteFile('${file.id}')" class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors shadow-sm bg-white border border-slate-200 hover:border-red-200" title="Eliminar"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        </div>
                     </div>
                 `;
                 listContainer.appendChild(item);
@@ -1102,18 +1139,56 @@
             }
         }
 
-        function openEditTagsModal(fileId, encodedTags, rawDur, encodedNotes = "") {
+        // EDICIÓ DE TRANCSCRIPCIÓ / NOTES
+        function openEditNotesModal(fileId, encodedNotes) {
+            document.getElementById('editNotesFileId').value = fileId;
+            document.getElementById('editNotesInput').value = decodeURIComponent(encodedNotes);
+            openModal('editNotesModal', 'editNotesCard');
+        }
+
+        async function saveEditedNotes() {
+            const fileId = document.getElementById('editNotesFileId').value;
+            const newNotes = document.getElementById('editNotesInput').value.trim();
+            
+            const btn = document.getElementById('saveNotesBtn');
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>...';
+            btn.disabled = true;
+
+            try {
+                // Permet buidar la descripció si s'envia un string buit
+                const body = { description: newNotes !== "" ? newNotes : null }; 
+
+                const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}`, {
+                    method: 'PATCH',
+                    headers: { 'Authorization': 'Bearer ' + accessToken, 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+
+                if (response.ok) {
+                    showNotification("Transcripció desada", "success");
+                    closeModal('editNotesModal', 'editNotesCard');
+                    loadDriveFiles(); 
+                } else throw new Error();
+            } catch (error) {
+                showNotification("Error a l'actualitzar la transcripció", "error");
+            } finally {
+                btn.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i> Guardar Transcripció';
+                lucide.createIcons();
+                btn.disabled = false;
+            }
+        }
+
+        // EDICIÓ D'ETIQUETES
+        function openEditTagsModal(fileId, encodedTags, rawDur) {
             document.getElementById('editTagsFileId').value = fileId;
             document.getElementById('editTagsInput').value = decodeURIComponent(encodedTags);
             document.getElementById('editTagsDuration').value = rawDur;
-            document.getElementById('editNotesInput').value = decodeURIComponent(encodedNotes);
             openModal('editTagsModal', 'editTagsCard');
         }
 
         async function saveEditedTags() {
             const fileId = document.getElementById('editTagsFileId').value;
             const newTags = document.getElementById('editTagsInput').value.trim();
-            const newNotes = document.getElementById('editNotesInput').value.trim();
             const dur = document.getElementById('editTagsDuration').value;
             
             const btn = document.getElementById('saveTagsBtn');
@@ -1126,8 +1201,6 @@
                 props.tags = newTags !== "" ? newTags : null; 
                 
                 const body = { appProperties: props };
-                // Permet buidar la descripció si envies string buit
-                body.description = newNotes !== "" ? newNotes : null; 
 
                 const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}`, {
                     method: 'PATCH',
@@ -1136,12 +1209,12 @@
                 });
 
                 if (response.ok) {
-                    showNotification("Dades actualitzades", "success");
+                    showNotification("Etiquetes actualitzades", "success");
                     closeModal('editTagsModal', 'editTagsCard');
                     loadDriveFiles(); 
                 } else throw new Error();
             } catch (error) {
-                showNotification("Error a l'actualitzar les dades", "error");
+                showNotification("Error a l'actualitzar les etiquetes", "error");
             } finally {
                 btn.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i> Guardar';
                 lucide.createIcons();
