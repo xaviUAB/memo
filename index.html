@@ -739,7 +739,10 @@
         function finalizeRecording() {
             document.getElementById('recordStatus').innerText = "Gravació Finalitzada";
             document.getElementById('audioPlayer').src = URL.createObjectURL(currentAudioBlob);
+            
+            // Això actualitzarà la caixa de notes un cop hagi finalitzat
             document.getElementById('audioNotes').value = currentTranscript.trim();
+            
             document.getElementById('resultSection').classList.remove('hidden');
             
             // Suggerir etiquetes existents un cop es grava
